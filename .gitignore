@@ -1,0 +1,6 @@
+ios/build/
+ios/obj/
+ios/*.xcodeproj
+DerivedData/
+.DS_Store
+*.ipa

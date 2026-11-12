@@ -1,0 +1,1597 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#eef7f2" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-title" content="无烟日记" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="mobile-web-app-capable" content="yes" />
+<title>无烟日记 · 戒烟打卡</title>
+<style>
+  :root{
+    --glow1:rgba(200,238,224,.95);
+    --glow2:rgba(226,240,255,.9);
+    --bg2:#f6faf8; --bg3:#f2f6f4;
+    --card:#ffffff;
+    --ink:#0f2420;
+    --muted:#6b8580;
+    --line:#e2ede9;
+    --accent:#0b7d61;
+    --accent2:#10a37f;
+    --accent-ink:#ffffff;
+    --soft:#e7f6f0;
+    --amber:#d98324;
+    --amber-soft:#fdf3e5;
+    --danger:#c2413a;
+    --field:#f9fcfa;
+    --hero1:#ffffff; --hero2:#f4fbf8;
+    --bar:#eef4f1;
+    --shadow:0 12px 30px -18px rgba(9,70,54,.45);
+    --radius:22px;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --glow1:rgba(16,74,60,.55);
+      --glow2:rgba(14,52,72,.5);
+      --bg2:#0b1a17; --bg3:#08120f;
+      --card:#11201c;
+      --ink:#eaf5f1;
+      --muted:#8ba6a0;
+      --line:#1f322c;
+      --accent:#3ecfa8;
+      --accent2:#2ec39a;
+      --accent-ink:#062018;
+      --soft:#12312a;
+      --amber:#e6a95c;
+      --amber-soft:#2c2115;
+      --danger:#e08079;
+      --field:#0e1c18;
+      --hero1:#13241f; --hero2:#0f1e1a;
+      --bar:#1a2b26;
+      --shadow:0 14px 34px -20px rgba(0,0,0,.9);
+    }
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",system-ui,sans-serif;
+    color:var(--ink);
+    background:
+      radial-gradient(120% 60% at 15% 0%, var(--glow1) 0%, rgba(0,0,0,0) 60%),
+      radial-gradient(90% 50% at 100% 8%, var(--glow2) 0%, rgba(0,0,0,0) 55%),
+      linear-gradient(180deg, var(--bg2), var(--bg3));
+    background-attachment:fixed;
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:520px;margin:0 auto;padding:calc(18px + env(safe-area-inset-top)) 18px calc(112px + env(safe-area-inset-bottom))}
+
+  header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+  .brand{display:flex;flex-direction:column;gap:2px}
+  .brand b{font-size:16px;letter-spacing:.02em}
+  .brand span{font-size:11.5px;color:var(--muted);letter-spacing:.04em}
+  .icon-btn{width:40px;height:40px;flex:0 0 auto;border-radius:13px;border:1px solid var(--line);
+    background:var(--card);display:grid;place-items:center;cursor:pointer;
+    box-shadow:0 6px 16px -12px rgba(9,70,54,.5);color:var(--muted)}
+  .icon-btn:active{transform:scale(.95)}
+
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+
+  /* hero */
+  .hero{padding:18px;text-align:center;background:linear-gradient(170deg,var(--hero1) 0%,var(--hero2) 100%)}
+  .hero-top{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap}
+  .pill{display:inline-flex;align-items:center;gap:5px;background:var(--soft);color:var(--accent);
+    font-size:11.5px;font-weight:600;padding:5px 10px;border-radius:999px}
+  .pill i{width:6px;height:6px;border-radius:50%;background:var(--accent2);display:block;
+    box-shadow:0 0 0 0 rgba(16,163,127,.6);animation:beat 2.2s infinite}
+  .pill.warn{background:var(--amber-soft);color:var(--amber)}
+  .pill.warn i{background:var(--amber)}
+  @keyframes beat{0%{box-shadow:0 0 0 0 rgba(16,163,127,.45)}70%{box-shadow:0 0 0 7px rgba(16,163,127,0)}100%{box-shadow:0 0 0 0 rgba(16,163,127,0)}}
+  .started{font-size:11.5px;color:var(--muted)}
+  .big{display:flex;align-items:baseline;justify-content:center;gap:6px;margin:4px 0 0}
+  .big b{font-size:clamp(60px,21vw,88px);line-height:1;letter-spacing:-.045em;font-weight:800;color:var(--accent);font-variant-numeric:tabular-nums}
+  .big em{font-style:normal;font-size:16px;font-weight:600;color:var(--muted);margin-bottom:10px}
+  .clock{display:flex;align-items:flex-start;justify-content:center;gap:14px;margin-top:2px}
+  .unit{display:flex;flex-direction:column;align-items:center;gap:1px;min-width:42px}
+  .unit span{font-size:19px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:.02em}
+  .unit i{font-style:normal;font-size:10px;color:var(--muted);letter-spacing:.12em}
+  .hero-foot{margin-top:12px;font-size:11.5px;color:var(--muted);min-height:16px}
+
+  .sec{margin-top:14px}
+  .sec-head{display:flex;align-items:baseline;justify-content:space-between;padding:0 4px;margin-bottom:8px}
+  .sec-head h2{font-size:13px;font-weight:600;margin:0;letter-spacing:.04em}
+  .sec-head span{font-size:11.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+
+  /* money */
+  .money{padding:18px 18px 16px;background:linear-gradient(165deg,var(--soft) 0%,var(--card) 55%)}
+  .money .lbl{font-size:10.5px;color:var(--muted);letter-spacing:.1em}
+  .money .amt{display:flex;align-items:baseline;gap:2px;margin:5px 0 3px}
+  .money .amt b{font-size:40px;font-weight:800;letter-spacing:-.035em;color:var(--accent);font-variant-numeric:tabular-nums;line-height:1.06}
+  .money .amt b i{font-style:normal;font-size:23px;font-weight:700;margin-right:1px}
+  .money .sub{font-size:11.5px;color:var(--muted);margin-bottom:13px}
+  .chips{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  .chip{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:9px 10px}
+  .chip small{display:block;font-size:9.5px;color:var(--muted);margin-bottom:3px;letter-spacing:.02em}
+  .chip b{font-size:13.5px;font-variant-numeric:tabular-nums;font-weight:700;white-space:nowrap}
+  .goal-wrap{margin-top:14px;padding-top:13px;border-top:1px dashed var(--line)}
+  .goal-top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:2px}
+  .goal-name{font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .goal-name.empty{color:var(--muted);font-weight:500;font-size:12.5px}
+  .link{background:none;border:none;font-family:inherit;font-size:12px;color:var(--accent);cursor:pointer;padding:2px 0;flex:0 0 auto}
+  .bar{height:8px;border-radius:99px;background:var(--bar);overflow:hidden;margin:11px 0 8px;display:block}
+  .bar > i{display:block;height:100%;width:0%;border-radius:99px;
+    background:linear-gradient(90deg,#4dc4a2,var(--accent));transition:width .6s cubic-bezier(.2,.8,.2,1)}
+  .bar-meta{display:flex;justify-content:space-between;font-size:11.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+  .goal-hint{margin:8px 0 0;font-size:11.5px;color:var(--muted);line-height:1.5}
+
+  /* next */
+  .next{padding:16px 18px 18px}
+  .next .top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+  .next .tag{font-size:11.5px;color:var(--amber);font-weight:700;background:var(--amber-soft);padding:4px 9px;border-radius:999px;white-space:nowrap}
+  .next h3{margin:0;font-size:16px;letter-spacing:.01em}
+  .next p{margin:4px 0 0;font-size:12px;color:var(--muted);line-height:1.5}
+
+  /* stats */
+  .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+  .stat{padding:13px 12px;text-align:left}
+  .stat small{display:block;font-size:10.5px;color:var(--muted);letter-spacing:.02em;margin-bottom:5px}
+  .stat b{display:block;font-size:17px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.01em;white-space:nowrap}
+  .stat b u{text-decoration:none;font-size:11px;font-weight:600;color:var(--muted);margin-left:2px}
+
+  /* calendar */
+  .cal-card{padding:16px 16px 14px}
+  .cal{display:grid;grid-auto-flow:column;grid-template-rows:repeat(7,1fr);gap:4px}
+  .cell{aspect-ratio:1;border-radius:6px;background:var(--bar);display:grid;place-items:center;
+    font-size:10px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums;color:#fff;
+    cursor:pointer;transition:transform .12s,background .2s}
+  .cell:active{transform:scale(.9)}
+  .cell.pre{background:rgba(120,145,138,.09);cursor:default}
+  .cell.ok{background:rgba(16,163,127,.30)}
+  .cell.slip{background:rgba(217,131,36,.55);text-shadow:0 1px 1px rgba(120,60,0,.25)}
+  .cell.future{background:transparent;border:1px dashed var(--line);cursor:default}
+  .cell.future:active,.cell.pre:active{transform:none}
+  .cell.today{box-shadow:inset 0 0 0 2px var(--accent)}
+  .cal-legend{display:flex;gap:14px;margin-top:11px;font-size:10.5px;color:var(--muted);flex-wrap:wrap}
+  .cal-legend i{display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+  .cal-hint{margin:9px 0 0;font-size:11px;color:var(--muted);line-height:1.5}
+
+  /* 记录某天 */
+  .daynum{display:flex;align-items:center;justify-content:center;gap:14px;margin:4px 0 14px}
+  .daynum b{font-size:52px;font-weight:800;line-height:1;letter-spacing:-.03em;min-width:76px;text-align:center;
+    color:var(--accent);font-variant-numeric:tabular-nums}
+  .daynum span{font-size:13px;color:var(--muted)}
+  .step{width:44px;height:44px;border-radius:14px;border:1px solid var(--line);background:var(--card);
+    color:var(--ink);font-size:20px;font-weight:600;cursor:pointer;font-family:inherit;line-height:1}
+  .step:active{transform:scale(.94)}
+  .chiprow{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:0 0 16px}
+  .chiprow button{min-width:46px;padding:9px 12px;border-radius:12px;border:1px solid var(--line);
+    background:var(--card);color:var(--ink);font-family:inherit;font-size:13px;font-weight:600;cursor:pointer}
+  .chiprow button.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+
+  /* hours */
+  .hours-card{padding:16px 18px 14px}
+  .hours{display:flex;align-items:flex-end;gap:3px;height:70px;margin-top:2px}
+  .hours i{flex:1;background:var(--bar);border-radius:3px 3px 2px 2px;min-height:3px;transition:height .4s}
+  .hours i.hot{background:linear-gradient(180deg,#f0a04b,var(--amber))}
+  .hours-axis{display:flex;justify-content:space-between;font-size:9.5px;color:var(--muted);margin-top:5px;font-variant-numeric:tabular-nums}
+  .hours-hint{margin:10px 0 0;font-size:11.5px;color:var(--muted);line-height:1.55}
+
+  /* milestones */
+  .ms{overflow:hidden}
+  .ms-item{display:flex;gap:12px;padding:13px 16px;border-top:1px solid var(--line);align-items:flex-start}
+  .ms-item:first-child{border-top:none}
+  .dot{width:22px;height:22px;border-radius:50%;flex:0 0 auto;display:grid;place-items:center;
+    font-size:11px;font-weight:700;margin-top:1px;border:1.5px solid var(--line);color:var(--muted);background:var(--card)}
+  .ms-item.done .dot{background:var(--accent2);border-color:var(--accent2);color:var(--accent-ink)}
+  .ms-item.now{background:linear-gradient(90deg,var(--soft),rgba(0,0,0,0))}
+  .ms-item.now .dot{border-color:var(--accent2);color:var(--accent2);box-shadow:0 0 0 4px rgba(16,163,127,.1)}
+  .ms-body{min-width:0;flex:1}
+  .ms-body strong{display:block;font-size:13.5px;font-weight:600;margin-bottom:2px}
+  .ms-body em{font-style:normal;display:block;font-size:11.5px;color:var(--muted);line-height:1.45}
+  .ms-item:not(.done):not(.now) .ms-body strong{opacity:.85;color:var(--muted)}
+  .ms-time{font-size:11px;color:var(--muted);flex:0 0 auto;font-variant-numeric:tabular-nums;margin-top:2px}
+  .ms-item.now .ms-time{color:var(--accent);font-weight:600}
+
+  /* badges */
+  .badges-card{padding:16px 12px 14px}
+  .badges{display:grid;grid-template-columns:repeat(3,1fr);gap:12px 8px}
+  .badge{display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center}
+  .badge .ic{width:48px;height:48px;border-radius:50%;display:grid;place-items:center;font-size:21px;
+    background:var(--soft);border:1px solid var(--line)}
+  .badge .nm{font-size:10.5px;line-height:1.3}
+  .badge.locked{opacity:.42}
+  .badge.locked .ic{filter:grayscale(1);background:var(--bar)}
+
+  /* crave */
+  .crave{padding:16px 18px;display:flex;align-items:center;gap:14px}
+  .crave .ring{width:46px;height:46px;flex:0 0 auto;border-radius:50%;background:var(--soft);display:grid;place-items:center;font-size:20px}
+  .crave .txt{flex:1;min-width:0}
+  .crave .txt strong{display:block;font-size:14px;margin-bottom:2px}
+  .crave .txt small{font-size:11.5px;color:var(--muted)}
+  .crave button{border:none;background:var(--accent);color:var(--accent-ink);font-size:13px;font-weight:600;
+    padding:10px 15px;border-radius:13px;cursor:pointer;white-space:nowrap;font-family:inherit;
+    box-shadow:0 10px 20px -12px rgba(11,125,97,.9)}
+  .crave button:active{transform:scale(.96)}
+  .crave .count{font-variant-numeric:tabular-nums}
+
+  /* tips */
+  .tips{padding:15px 18px 17px}
+  .tips h3{margin:0 0 9px;font-size:13px;font-weight:600}
+  .tips ul{margin:0;padding:0;list-style:none;display:grid;gap:8px}
+  .tips li{display:flex;gap:9px;font-size:12px;color:var(--muted);line-height:1.5}
+  .tips li b{color:var(--accent);font-weight:700;flex:0 0 auto;font-variant-numeric:tabular-nums}
+  .tips li strong{color:var(--ink);font-weight:600}
+
+  footer{margin-top:20px;text-align:center;font-size:11px;color:var(--muted);line-height:1.7;opacity:.85}
+
+  /* quickbar */
+  .quickbar{position:fixed;left:0;right:0;bottom:0;z-index:30;display:flex;gap:9px;max-width:520px;margin:0 auto;
+    padding:10px 18px calc(10px + env(safe-area-inset-bottom));
+    background:linear-gradient(180deg, rgba(246,250,248,.55), var(--bg3) 45%);
+    -webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);
+    border-top:1px solid var(--line)}
+  .qb{flex:1;font-family:inherit;font-size:14px;font-weight:600;padding:13px 8px;border-radius:15px;cursor:pointer;
+    border:1px solid transparent;display:flex;align-items:center;justify-content:center;gap:6px}
+  .qb.primary{background:var(--accent);color:var(--accent-ink);box-shadow:0 12px 24px -14px rgba(11,125,97,.95)}
+  .qb.ghost{background:var(--card);color:var(--muted);border-color:var(--line);flex:0 0 32%}
+  .qb:active{transform:scale(.97)}
+  .qb .n{font-variant-numeric:tabular-nums;opacity:.72;font-weight:600}
+
+  .toast{position:fixed;left:50%;top:calc(14px + env(safe-area-inset-top));transform:translate(-50%,-160%);z-index:80;
+    background:#122a24;color:#fff;font-size:13px;line-height:1.4;padding:11px 18px;border-radius:999px;text-align:center;
+    max-width:calc(100% - 40px);box-shadow:0 16px 34px -18px rgba(0,0,0,.7);
+    transition:transform .32s cubic-bezier(.2,.9,.25,1);pointer-events:none}
+  .toast.on{transform:translate(-50%,0)}
+
+  /* 激励弹窗 */
+  .modal{position:fixed;inset:0;z-index:70;display:flex;align-items:center;justify-content:center;
+    padding:26px;opacity:0;pointer-events:none;transition:opacity .22s}
+  .modal.on{opacity:1;pointer-events:auto}
+  .modal .mask{position:absolute;inset:0;background:rgba(6,26,21,.5);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px)}
+  .enc{position:relative;width:100%;max-width:330px;background:var(--card);border-radius:26px;
+    padding:26px 24px 20px;box-shadow:0 30px 60px -30px rgba(0,0,0,.5);
+    transform:translateY(14px) scale(.96);transition:transform .26s cubic-bezier(.2,.9,.25,1);text-align:left}
+  .modal.on .enc{transform:translateY(0) scale(1)}
+  .enc .badge{display:inline-flex;align-items:center;gap:5px;font-size:10.5px;font-weight:700;
+    color:var(--accent);background:var(--soft);padding:4px 9px;border-radius:999px;letter-spacing:.03em}
+  .enc .badge em{font-style:normal;opacity:.65;font-weight:600}
+  .enc .quote{font-size:16.5px;line-height:1.75;letter-spacing:.01em;margin:14px 0 16px;
+    color:var(--ink);min-height:78px;white-space:pre-wrap}
+  .enc .quote.loading{color:var(--muted);font-size:14px;letter-spacing:.06em}
+  .enc .meta{font-size:11.5px;color:var(--muted);line-height:1.7;margin:0 0 16px;
+    padding-top:13px;border-top:1px dashed var(--line);font-variant-numeric:tabular-nums}
+  .enc .row{display:flex;gap:9px}
+  .enc .row .save{margin-top:0;padding:12px;font-size:14px;box-shadow:none}
+  .enc .row .again{margin-top:0;flex:0 0 38%;padding:12px;font-size:13px}
+
+  /* sheet */
+  .backdrop{position:fixed;inset:0;background:rgba(10,34,28,.38);-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px);
+    opacity:0;pointer-events:none;transition:opacity .25s;z-index:40}
+  .backdrop.on{opacity:1;pointer-events:auto}
+  .sheet{position:fixed;left:0;right:0;bottom:0;z-index:50;background:var(--card);border-radius:24px 24px 0 0;
+    padding:10px 20px calc(22px + env(safe-area-inset-bottom));transform:translateY(103%);
+    transition:transform .32s cubic-bezier(.22,.9,.24,1);max-height:92vh;overflow-y:auto;
+    box-shadow:0 -18px 40px -20px rgba(9,70,54,.5)}
+  .sheet.on{transform:translateY(0)}
+  .sheet::before{content:"";display:block;width:38px;height:4px;border-radius:99px;background:var(--line);margin:2px auto 14px}
+  .sheet h2{margin:0 0 4px;font-size:17px}
+  .sheet .hint{margin:0 0 16px;font-size:11.5px;color:var(--muted);line-height:1.6}
+  .sheet h4{margin:20px 0 10px;font-size:12px;color:var(--muted);letter-spacing:.06em;font-weight:600}
+  .field{margin-bottom:13px}
+  .field label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px;font-weight:600}
+  .field input{width:100%;font-family:inherit;font-size:15px;color:var(--ink);padding:12px 13px;border-radius:13px;
+    border:1px solid var(--line);background:var(--field);appearance:none;-webkit-appearance:none}
+  .field input:focus{outline:none;border-color:var(--accent2);background:var(--card);box-shadow:0 0 0 3px rgba(16,163,127,.12)}
+  .switch-row{display:flex;gap:10px;align-items:flex-start;font-size:12px;color:var(--muted);
+    line-height:1.5;margin:0 0 12px;cursor:pointer}
+  .switch-row input{width:18px;height:18px;margin:1px 0 0;accent-color:var(--accent);flex:0 0 auto}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .quick{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+  .quick button{font-family:inherit;font-size:12px;padding:7px 12px;border-radius:10px;cursor:pointer;
+    border:1px solid var(--line);background:var(--card);color:var(--muted)}
+  .save{width:100%;margin-top:8px;padding:14px;border:none;border-radius:15px;cursor:pointer;
+    background:var(--accent);color:var(--accent-ink);font-size:15px;font-weight:600;font-family:inherit;
+    box-shadow:0 14px 26px -16px rgba(11,125,97,1)}
+  .save:active{transform:scale(.985)}
+  .ghost{width:100%;margin-top:10px;padding:12px;border-radius:14px;cursor:pointer;font-family:inherit;
+    background:var(--card);border:1px solid var(--line);color:var(--ink);font-size:13px;font-weight:600}
+  .danger{width:100%;margin-top:10px;padding:12px;border-radius:14px;cursor:pointer;font-family:inherit;
+    background:var(--card);border:1px solid rgba(194,65,58,.35);color:var(--danger);font-size:13px;font-weight:600}
+  .saved-tip{text-align:center;font-size:11.5px;color:var(--accent);height:14px;margin-top:8px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="brand">
+      <b>无烟日记</b>
+      <span id="headSub">每一分钟都在变好</span>
+    </div>
+    <button class="icon-btn" id="openSettings" aria-label="设置">
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+        <circle cx="12" cy="12" r="3.2"></circle>
+        <path d="M19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-1.8-.3 1.6 1.6 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.6 1.6 0 0 0-1-1.5 1.6 1.6 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.6 1.6 0 0 0 .3-1.8 1.6 1.6 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.6 1.6 0 0 0 1.5-1 1.6 1.6 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.6 1.6 0 0 0 1.8.3H9a1.6 1.6 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.6 1.6 0 0 0 1 1.5 1.6 1.6 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0-.3 1.8V9a1.6 1.6 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.6 1.6 0 0 0-1.5 1z"></path>
+      </svg>
+    </button>
+  </header>
+
+  <section class="card hero">
+    <div class="hero-top">
+      <span class="pill" id="statusPill"><i></i>无烟进行中</span>
+      <span class="started" id="startedAt">—</span>
+    </div>
+    <div class="big"><b id="days">0</b><em>天</em></div>
+    <div class="clock">
+      <div class="unit"><span id="hh">00</span><i>时</i></div>
+      <div class="unit"><span id="mm">00</span><i>分</i></div>
+      <div class="unit"><span id="ss">00</span><i>秒</i></div>
+    </div>
+    <div class="hero-foot" id="heroFoot"></div>
+  </section>
+
+  <div class="sec">
+    <section class="card money">
+      <div class="lbl">我已经省下</div>
+      <div class="amt"><b id="moneyTotal"><i>¥</i>0.00</b></div>
+      <div class="sub" id="moneySub">—</div>
+      <div class="chips">
+        <div class="chip"><small>今天</small><b id="moneyToday">¥0</b></div>
+        <div class="chip"><small>本月</small><b id="moneyMonth">¥0</b></div>
+        <div class="chip"><small>相当于</small><b id="moneyPacks">0 包</b></div>
+      </div>
+      <div class="goal-wrap">
+        <div class="goal-top">
+          <span class="goal-name empty" id="goalName">设个目标，把烟钱换成想要的东西</span>
+          <button class="link" id="goalEdit">设置</button>
+        </div>
+        <div class="bar"><i id="goalBar"></i></div>
+        <div class="bar-meta"><span id="goalNow">¥0</span><span id="goalTarget">—</span></div>
+        <p class="goal-hint" id="goalHint">—</p>
+      </div>
+    </section>
+  </div>
+
+  <div class="sec">
+    <div class="sec-head">
+      <h2>下一站</h2>
+      <span id="msCount">0 / 13</span>
+    </div>
+    <section class="card next">
+      <div class="top">
+        <h3 id="nextTitle">—</h3>
+        <span class="tag" id="nextTag">—</span>
+      </div>
+      <p id="nextDesc">—</p>
+      <div class="bar"><i id="nextBar"></i></div>
+      <div class="bar-meta">
+        <span id="nextLeft">—</span>
+        <span id="nextPct">—</span>
+      </div>
+    </section>
+  </div>
+
+  <div class="sec">
+    <div class="sec-head">
+      <h2>你的成绩</h2>
+      <span>累计至今</span>
+    </div>
+    <div class="stats">
+      <div class="card stat"><small>少抽了</small><b id="statCigs">0<u>支</u></b></div>
+      <div class="card stat"><small>多活</small><b id="statLife">0<u>小时</u></b></div>
+      <div class="card stat"><small>扛过念头</small><b id="statCrave">0<u>次</u></b></div>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div class="sec-head">
+      <h2>无烟日历</h2>
+      <span id="calSub">最近 9 周</span>
+    </div>
+    <section class="card cal-card">
+      <div class="cal" id="cal"></div>
+      <div class="cal-legend">
+        <span><i style="background:rgba(16,163,127,.30)"></i>无烟</span>
+        <span><i style="background:rgba(217,131,36,.6)"></i>抽过（数字＝支数）</span>
+        <span><i style="background:rgba(120,145,138,.12)"></i>戒烟前</span>
+      </div>
+      <p class="cal-hint">点任意一天，记录当天抽了几支；记 0 表示确认这天没抽。</p>
+    </section>
+  </div>
+
+  <div class="sec">
+    <div class="sec-head">
+      <h2>身体修复进度</h2>
+      <span>医学里程碑</span>
+    </div>
+    <section class="card ms" id="msList"></section>
+  </div>
+
+  <div class="sec" id="hoursSec" style="display:none">
+    <div class="sec-head">
+      <h2>烟瘾时段</h2>
+      <span>按你记录的念头</span>
+    </div>
+    <section class="card hours-card">
+      <div class="hours" id="hours"></div>
+      <div class="hours-axis"><span>0</span><span>6</span><span>12</span><span>18</span><span>23</span></div>
+      <p class="hours-hint" id="hoursHint">—</p>
+    </section>
+  </div>
+
+  <div class="sec">
+    <div class="sec-head">
+      <h2>成就徽章</h2>
+      <span id="badgeSub">0 / 12</span>
+    </div>
+    <section class="card badges-card">
+      <div class="badges" id="badges"></div>
+    </section>
+  </div>
+
+  <div class="sec">
+    <div class="sec-head">
+      <h2>扛过一次</h2>
+      <span>烟瘾只持续 3–5 分钟</span>
+    </div>
+    <section class="card crave">
+      <div class="ring">🍃</div>
+      <div class="txt">
+        <strong>我想抽，但我扛住了</strong>
+        <small>已扛过 <span class="count" id="craveCount">0</span> 次念头 · 抽过 <span class="count" id="slipCount">0</span> 支</small>
+      </div>
+      <button id="craveBtn">记一次</button>
+    </section>
+  </div>
+
+  <div class="sec">
+    <section class="card tips">
+      <h3>想抽的时候，试试 4D</h3>
+      <ul>
+        <li><b>1</b><span><strong>Delay 拖一拖</strong>：先等 3 分钟，绝大多数冲动会自动退潮。</span></li>
+        <li><b>2</b><span><strong>Deep breathe 深呼吸</strong>：吸 4 秒、屏 4 秒、呼 6 秒，做 5 轮。</span></li>
+        <li><b>3</b><span><strong>Drink water 喝水</strong>：大口喝一杯温水，冲淡口腔的空落感。</span></li>
+        <li><b>4</b><span><strong>Do something 换场景</strong>：起身走动、洗脸、刷牙，打断习惯回路。</span></li>
+      </ul>
+    </section>
+  </div>
+
+  <footer>
+    数据只保存在这台设备上，不上传、不联网。<br>
+    一键记录：把本页加到主屏幕，或用「快捷指令」打开 <b>本页地址#crave</b>。
+  </footer>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div class="quickbar">
+  <button class="qb primary" id="qbCrave">🍃 扛住了 <span class="n" id="qbCraveN">0</span></button>
+  <button class="qb ghost" id="qbSlip">抽了一支</button>
+</div>
+
+<div class="backdrop" id="backdrop"></div>
+<div class="sheet" id="sheet">
+  <h2>设置</h2>
+  <p class="hint">戒烟时间可以随时修正；填上抽烟习惯，就能算出省下的钱和身体变化。</p>
+
+  <div class="field">
+    <label for="inQuit">戒烟开始时间</label>
+    <input type="datetime-local" id="inQuit" />
+    <div class="quick">
+      <button type="button" data-quick="0">就是现在</button>
+      <button type="button" data-quick="today">今天 0 点</button>
+      <button type="button" data-quick="yesterday">昨天 0 点</button>
+    </div>
+  </div>
+
+  <div class="row2">
+    <div class="field">
+      <label for="inCigs">每天抽几支</label>
+      <input type="number" id="inCigs" min="1" max="200" step="1" inputmode="numeric" />
+    </div>
+    <div class="field">
+      <label for="inPrice">每包多少钱</label>
+      <input type="number" id="inPrice" min="1" step="0.5" inputmode="decimal" />
+    </div>
+  </div>
+
+  <div class="row2">
+    <div class="field">
+      <label for="inPack">每包多少支</label>
+      <input type="number" id="inPack" min="1" max="50" step="1" inputmode="numeric" />
+    </div>
+    <div class="field">
+      <label>最长纪录</label>
+      <input type="text" id="inBest" readonly />
+    </div>
+  </div>
+
+  <h4>省钱目标</h4>
+  <div class="row2">
+    <div class="field">
+      <label for="inGoalName">想买什么</label>
+      <input type="text" id="inGoalName" placeholder="例如：一双跑鞋" maxlength="20" />
+    </div>
+    <div class="field">
+      <label for="inGoalPrice">大概多少钱</label>
+      <input type="number" id="inGoalPrice" min="0" step="10" inputmode="decimal" placeholder="0" />
+    </div>
+  </div>
+
+  <button class="save" id="saveBtn">保存</button>
+  <div class="saved-tip" id="savedTip"></div>
+
+  <h4>激励语 · 可选 AI</h4>
+  <label class="switch-row" for="inAiOn">
+    <input type="checkbox" id="inAiOn" />
+    <span>用 AI 生成激励语（关闭时用本地文案库，48 句洗牌，不重复）</span>
+  </label>
+  <div class="row2">
+    <div class="field">
+      <label for="inAiUrl">接口地址</label>
+      <input type="text" id="inAiUrl" placeholder="https://api.openai.com/v1/chat/completions" />
+    </div>
+    <div class="field">
+      <label for="inAiModel">模型</label>
+      <input type="text" id="inAiModel" placeholder="gpt-4o-mini" />
+    </div>
+  </div>
+  <div class="field">
+    <label for="inAiKey">API Key（只存在本机，不上传）</label>
+    <input type="password" id="inAiKey" placeholder="sk-..." autocomplete="off" />
+  </div>
+  <p class="hint" style="margin:-4px 0 4px">任何 OpenAI 兼容接口都行。接口不支持跨域时，会自动退回本地文案。</p>
+
+  <h4>数据</h4>
+  <button class="ghost" id="shareBtn">生成成绩卡图片</button>
+  <div class="row2" style="margin-top:10px">
+    <button class="ghost" id="exportBtn" style="margin-top:0">导出备份</button>
+    <button class="ghost" id="importBtn" style="margin-top:0">导入备份</button>
+  </div>
+  <input type="file" id="importFile" accept="application/json,.json" style="display:none" />
+
+  <button class="danger" id="resetBtn">复吸了，重新开始计时</button>
+</div>
+
+<div class="modal" id="encModal">
+  <div class="mask" id="encMask"></div>
+  <div class="enc">
+    <span class="badge" id="encBadge">今天第 1 支</span>
+    <p class="quote" id="encQuote">—</p>
+    <p class="meta" id="encMeta">—</p>
+    <div class="row">
+      <button class="save" id="encClose">继续走</button>
+      <button class="ghost again" id="encAgain">换一句</button>
+    </div>
+  </div>
+</div>
+
+<div class="sheet" id="daySheet">
+  <h2 id="dayTitle">—</h2>
+  <p class="hint" id="dayHint">这天抽了几支？</p>
+  <div class="daynum">
+    <button class="step" id="dayMinus" aria-label="减少">−</button>
+    <b id="dayValue">0</b><span>支</span>
+    <button class="step" id="dayPlus" aria-label="增加">+</button>
+  </div>
+  <div class="chiprow" id="dayChips"></div>
+  <button class="save" id="daySave">保存这天的记录</button>
+  <button class="ghost" id="dayClear">清除这天的记录</button>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  var KEY = "quitsmoke.v2";
+  var DAY = 86400000, HOUR = 3600000, MIN = 60000;
+
+  var MILESTONES = [
+    { t: 20 * MIN,        title: "20 分钟",  desc: "心率与血压回落到接近正常水平" },
+    { t: 8 * HOUR,        title: "8 小时",   desc: "血中一氧化碳降到正常，血氧回升" },
+    { t: 24 * HOUR,       title: "24 小时",  desc: "心脏病发作的风险开始下降" },
+    { t: 48 * HOUR,       title: "48 小时",  desc: "嗅觉与味觉开始恢复，食物变好吃了" },
+    { t: 72 * HOUR,       title: "72 小时",  desc: "支气管放松，呼吸更顺畅，肺活量增加" },
+    { t: 14 * DAY,        title: "2 周",     desc: "血液循环改善，走路、爬楼梯更轻松" },
+    { t: 30 * DAY,        title: "1 个月",   desc: "咳嗽与气短减少，肺部纤毛开始再生" },
+    { t: 90 * DAY,        title: "3 个月",   desc: "肺功能可提升约 10%，体力明显变好" },
+    { t: 270 * DAY,       title: "9 个月",   desc: "纤毛基本恢复，感冒和肺部感染变少" },
+    { t: 365 * DAY,       title: "1 年",     desc: "冠心病风险降到吸烟者的一半" },
+    { t: 5 * 365 * DAY,   title: "5 年",     desc: "中风风险接近从不吸烟的人" },
+    { t: 10 * 365 * DAY,  title: "10 年",    desc: "肺癌死亡风险降到吸烟者的一半" },
+    { t: 15 * 365 * DAY,  title: "15 年",    desc: "冠心病风险与从不吸烟者相同" }
+  ];
+
+  var DEFAULT = {
+    quitAt: Date.now(),
+    cigsPerDay: 20,
+    pricePerPack: 25,
+    cigsPerPack: 20,
+    cravings: 0,
+    craveLog: [],
+    slips: 0,
+    slipLog: [],
+    daily: {},
+    bestMs: 0,
+    goalName: "",
+    goalPrice: 0,
+    aiEnabled: false,
+    aiUrl: "",
+    aiModel: "",
+    aiKey: "",
+    encHistory: []
+  };
+
+  /* ---------- 存储层：浏览器用 localStorage，装进 App 后额外走原生通道 ---------- */
+  var NATIVE = (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.store) || null;
+  var NATIVE_PRELOAD = window.__NATIVE_STATE__ || null;
+  var memStore = {};
+
+  function storeGet(k) {
+    try {
+      var v = localStorage.getItem(k);
+      if (v !== null && v !== undefined) return v;
+    } catch (e) {}
+    if (NATIVE_PRELOAD && typeof NATIVE_PRELOAD[k] === "string") return NATIVE_PRELOAD[k];
+    return memStore[k] || null;
+  }
+
+  function storeSet(k, v) {
+    memStore[k] = v;
+    try { localStorage.setItem(k, v); } catch (e) {}
+    if (NATIVE) {
+      try { NATIVE.postMessage({ key: k, value: v }); } catch (e) {}
+    }
+  }
+
+  var state = loadState();
+  var sigMs = "", sigCal = "", sigBadge = "", sigHours = "";
+  var elToast = document.getElementById("toast");
+
+  /* ---------------- storage ---------------- */
+  function loadState() {
+    var base = {}, key;
+    for (key in DEFAULT) base[key] = DEFAULT[key];
+    try {
+      var raw = storeGet(KEY) || storeGet("quitsmoke.v1");
+      if (raw) {
+        var obj = JSON.parse(raw);
+        for (key in obj) {
+          if (obj[key] !== undefined && obj[key] !== null) base[key] = obj[key];
+        }
+      } else {
+        base.quitAt = Date.now();
+      }
+    } catch (e) {}
+    if (!base.quitAt || isNaN(base.quitAt)) base.quitAt = Date.now();
+    if (!Array.isArray(base.craveLog)) base.craveLog = [];
+    if (!Array.isArray(base.slipLog)) base.slipLog = [];
+    if (!base.daily || typeof base.daily !== "object") base.daily = {};
+
+    /* 老数据迁移：把旧的 slipLog 折算成每日支数 */
+    if (Object.keys(base.daily).length === 0 && base.slipLog.length > 0) {
+      base.slipLog.forEach(function (ts) {
+        var k = dayKey(ts);
+        base.daily[k] = (base.daily[k] || 0) + 1;
+      });
+    }
+    return base;
+  }
+
+  function saveState() {
+    storeSet(KEY, JSON.stringify(state));
+  }
+
+  /* ---------------- helpers ---------------- */
+  function pad(n) { return (n < 10 ? "0" : "") + n; }
+
+  function fmtLocalInput(ts) {
+    var d = new Date(ts);
+    return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()) +
+           "T" + pad(d.getHours()) + ":" + pad(d.getMinutes());
+  }
+  function fmtDateTime(ts) {
+    var d = new Date(ts);
+    return (d.getMonth() + 1) + "月" + d.getDate() + "日 " + pad(d.getHours()) + ":" + pad(d.getMinutes());
+  }
+  function fmtNum(n) { return Math.floor(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","); }
+
+  /* 金额：小额保留两位，大额取整千分位 */
+  function moneyText(n) {
+    if (n >= 1000) return fmtNum(Math.round(n));
+    if (n >= 100) return n.toFixed(1).replace(/\.0$/, "");
+    return n.toFixed(2);
+  }
+  function fmtMoney(n) { return "¥" + moneyText(n); }
+
+  function startOfDay(ts) { var d = new Date(ts); d.setHours(0, 0, 0, 0); return d.getTime(); }
+  function startOfMonth(ts) { var d = new Date(ts); d.setDate(1); d.setHours(0, 0, 0, 0); return d.getTime(); }
+  function dayKey(ts) {
+    var d = new Date(ts);
+    return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate());
+  }
+  function fmtSpan(ms) {
+    if (ms < MIN) return Math.max(0, Math.ceil(ms / 1000)) + " 秒";
+    if (ms < HOUR) {
+      var m = Math.floor(ms / MIN), s = Math.floor((ms % MIN) / 1000);
+      return m + " 分" + (s ? " " + s + " 秒" : "");
+    }
+    if (ms < DAY) {
+      var h = Math.floor(ms / HOUR), mm = Math.floor((ms % HOUR) / MIN);
+      return h + " 小时" + (mm ? " " + mm + " 分" : "");
+    }
+    var d = Math.floor(ms / DAY), hh = Math.floor((ms % DAY) / HOUR);
+    return d + " 天" + (hh ? " " + hh + " 小时" : "");
+  }
+  function fmtLife(minutes) {
+    if (minutes < 60) return { v: Math.max(0, Math.round(minutes)).toString(), u: "分钟" };
+    if (minutes < 1440) return { v: Math.floor(minutes / 60).toString(), u: "小时" };
+    var d = Math.floor(minutes / 1440), h = Math.floor((minutes % 1440) / 60);
+    return h ? { v: d + "天" + h, u: "" } : { v: String(d), u: "天" };
+  }
+  function $(id) { return document.getElementById(id); }
+
+  /* ---------------- toast ---------------- */
+  var toastTimer = null;
+  function toast(msg, ms) {
+    elToast.textContent = msg;
+    elToast.classList.add("on");
+    if (toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { elToast.classList.remove("on"); }, ms || 1900);
+  }
+  function buzz(p) { try { if (navigator.vibrate) navigator.vibrate(p || 12); } catch (e) {} }
+
+  /* ---------------- 金额计算 ---------------- */
+  function calc() {
+    var now = Date.now();
+    var elapsed = Math.max(0, now - state.quitAt);
+    var totalDays = elapsed / DAY;
+    var pricePerCig = state.pricePerPack / Math.max(1, state.cigsPerPack);
+    var dailyMoney = state.cigsPerDay * pricePerCig;
+
+    /* 统计实际抽掉的支数：总计 / 今天 / 本月 */
+    var tk = dayKey(now), mk = tk.slice(0, 7);
+    var smoked = 0, todaySmoked = 0, monthSmoked = 0, k, n;
+    for (k in state.daily) {
+      n = state.daily[k] || 0;
+      smoked += n;
+      if (k === tk) todaySmoked = n;
+      if (k.slice(0, 7) === mk) monthSmoked = n;
+    }
+
+    var todayFrom = Math.max(state.quitAt, startOfDay(now));
+    var todayGross = Math.min(dailyMoney, (Math.max(0, now - todayFrom) / DAY) * dailyMoney);
+    var monthFrom = Math.max(state.quitAt, startOfMonth(now));
+    var monthGross = Math.max(0, (now - monthFrom) / DAY) * dailyMoney;
+
+    return {
+      now: now,
+      elapsed: elapsed,
+      days: Math.floor(totalDays),
+      totalDays: totalDays,
+      smoked: smoked,
+      todaySmoked: todaySmoked,
+      monthSmoked: monthSmoked,
+      cigs: Math.max(0, Math.floor(totalDays * state.cigsPerDay) - smoked),
+      money: Math.max(0, totalDays * dailyMoney - smoked * pricePerCig),
+      todayMoney: Math.max(0, todayGross - todaySmoked * pricePerCig),
+      monthMoney: Math.max(0, monthGross - monthSmoked * pricePerCig),
+      dailyMoney: dailyMoney,
+      pricePerCig: pricePerCig
+    };
+  }
+
+  /* ---------------- main render ---------------- */
+  function render() {
+    var c = calc();
+    var days = c.days, elapsed = c.elapsed, now = c.now;
+
+    $("days").textContent = days;
+    $("hh").textContent = pad(Math.floor(elapsed / HOUR) % 24);
+    $("mm").textContent = pad(Math.floor(elapsed / MIN) % 60);
+    $("ss").textContent = pad(Math.floor(elapsed / 1000) % 60);
+
+    var slippedToday = c.todaySmoked > 0;
+    if (state.quitAt > now) {
+      $("statusPill").className = "pill";
+      $("statusPill").innerHTML = "<i></i>即将开始";
+      $("startedAt").textContent = "将于 " + fmtDateTime(state.quitAt) + " 开始";
+    } else {
+      $("statusPill").className = slippedToday ? "pill warn" : "pill";
+      $("statusPill").innerHTML = slippedToday
+        ? "<i></i>今天记了 " + c.todaySmoked + " 支，接着走"
+        : "<i></i>无烟进行中";
+      $("startedAt").textContent = "从 " + fmtDateTime(state.quitAt) + " 开始";
+    }
+
+    var foot = [];
+    if (state.bestMs > 0) {
+      foot.push("最长纪录 " + Math.floor(state.bestMs / DAY) + " 天 " + Math.floor((state.bestMs % DAY) / HOUR) + " 小时");
+    }
+    if (c.smoked > 0) foot.push("累计记录抽过 " + c.smoked + " 支");
+    $("heroFoot").textContent = foot.join(" · ");
+
+    /* ---- 省钱卡 ---- */
+    $("moneyTotal").innerHTML = "<i>¥</i>" + moneyText(c.money);
+    $("moneySub").textContent = "每天省 " + fmtMoney(c.dailyMoney) + "，等于少抽 " + state.cigsPerDay + " 支";
+    $("moneyToday").textContent = fmtMoney(c.todayMoney);
+    $("moneyMonth").textContent = fmtMoney(c.monthMoney);
+    var packs = state.pricePerPack > 0 ? c.money / state.pricePerPack : 0;
+    $("moneyPacks").textContent = (packs >= 10 ? Math.round(packs) : packs.toFixed(1)) + " 包";
+    renderGoal(c);
+
+    /* ---- stats ---- */
+    $("statCigs").innerHTML = fmtNum(c.cigs) + "<u>支</u>";
+    var life = fmtLife(c.cigs * 11);
+    $("statLife").innerHTML = life.v + "<u>" + life.u + "</u>";
+    $("statCrave").innerHTML = state.cravings + "<u>次</u>";
+
+    /* ---- milestones ---- */
+    var passed = 0;
+    for (var i = 0; i < MILESTONES.length; i++) if (elapsed >= MILESTONES[i].t) passed++;
+    $("msCount").textContent = passed + " / " + MILESTONES.length;
+
+    var nextIdx = passed < MILESTONES.length ? passed : -1;
+    var sig = passed + "|" + nextIdx;
+    if (sig !== sigMs) { sigMs = sig; buildMilestones(passed, nextIdx); }
+
+    if (nextIdx === -1) {
+      $("nextTitle").textContent = "全部里程碑已达成";
+      $("nextDesc").textContent = "你的身体已经按不吸烟者的方式在运转，继续保持。";
+      $("nextTag").textContent = "完成";
+      $("nextBar").style.width = "100%";
+      $("nextLeft").textContent = "已走完全程";
+      $("nextPct").textContent = "100%";
+    } else {
+      var m = MILESTONES[nextIdx];
+      var prevT = nextIdx > 0 ? MILESTONES[nextIdx - 1].t : 0;
+      var span = Math.max(1, m.t - prevT);
+      var pct = Math.min(99.9, Math.max(0, ((elapsed - prevT) / span) * 100));
+      $("nextTitle").textContent = m.title + " · 身体修复";
+      $("nextDesc").textContent = m.desc;
+      $("nextTag").textContent = "还差 " + fmtSpan(m.t - elapsed);
+      $("nextBar").style.width = pct.toFixed(1) + "%";
+      $("nextLeft").textContent = "已完成 " + pct.toFixed(0) + "%";
+      $("nextPct").textContent = "累计 " + fmtSpan(elapsed);
+    }
+
+    /* ---- calendar / hours / badges ---- */
+    var calSig = dayKey(now) + "|" + state.slipLog.length + "|" + dayKey(state.quitAt);
+    if (calSig !== sigCal) { sigCal = calSig; buildCalendar(); }
+    if (sigHours !== String(state.craveLog.length)) { sigHours = String(state.craveLog.length); buildHours(); }
+
+    var badgeSig = days + "|" + Math.floor(c.money) + "|" + state.cravings;
+    if (badgeSig !== sigBadge) { sigBadge = badgeSig; buildBadges(days, c.money); }
+
+    $("craveCount").textContent = state.cravings;
+    $("slipCount").textContent = c.smoked;
+    $("qbCraveN").textContent = state.cravings;
+
+    $("headSub").textContent = days > 0 ? "第 " + (days + 1) + " 天，正在变好" : "每一分钟都在变好";
+    document.title = days > 0 ? "第 " + (days + 1) + " 天 · 无烟日记" : "无烟日记 · 戒烟打卡";
+  }
+
+  function renderGoal(c) {
+    var nameEl = $("goalName");
+    var has = state.goalPrice > 0;
+    if (!has) {
+      nameEl.className = "goal-name empty";
+      nameEl.textContent = "设个目标，把烟钱换成想要的东西";
+      $("goalBar").style.width = "0%";
+      $("goalNow").textContent = "已攒 " + fmtMoney(c.money);
+      $("goalTarget").textContent = "未设目标";
+      $("goalHint").textContent = "点右侧「设置」填一个想买的东西，进度就会自己跑。";
+      return;
+    }
+    nameEl.className = "goal-name";
+    nameEl.textContent = state.goalName || "目标";
+    var p = Math.min(100, (c.money / state.goalPrice) * 100);
+    $("goalBar").style.width = p.toFixed(1) + "%";
+    $("goalNow").textContent = fmtMoney(c.money);
+    $("goalTarget").textContent = fmtMoney(state.goalPrice);
+    if (c.money >= state.goalPrice) {
+      $("goalHint").textContent = "已经攒够，随时可以去把它带回家 🎉";
+    } else {
+      var need = state.goalPrice - c.money;
+      var leftDays = c.dailyMoney > 0 ? Math.ceil(need / c.dailyMoney) : 0;
+      $("goalHint").textContent = "还差 " + fmtMoney(need) + "，按现在的速度再坚持 " + leftDays + " 天";
+    }
+  }
+
+  function buildMilestones(passed, nextIdx) {
+    var html = "";
+    for (var i = 0; i < MILESTONES.length; i++) {
+      var m = MILESTONES[i];
+      var cls = i < passed ? "done" : (i === nextIdx ? "now" : "");
+      var mark = i < passed ? "✓" : (i === nextIdx ? "•" : "");
+      html += '<div class="ms-item ' + cls + '">' +
+                '<div class="dot">' + mark + '</div>' +
+                '<div class="ms-body"><strong>' + m.title + '</strong><em>' + m.desc + '</em></div>' +
+                '<div class="ms-time">' + (i < passed ? "已达成" : "") + '</div>' +
+              '</div>';
+    }
+    $("msList").innerHTML = html;
+  }
+
+  function buildCalendar() {
+    var today = startOfDay(Date.now());
+    var quitDay = startOfDay(state.quitAt);
+    var start = today - 62 * DAY;
+    var dow = new Date(start).getDay();
+    start -= ((dow + 6) % 7) * DAY;
+
+    var cells = [], t = start;
+    while (t <= today) { cells.push(t); t += DAY; }
+    while (cells.length % 7 !== 0) { cells.push(cells[cells.length - 1] + DAY); }
+
+    var weeks = cells.length / 7;
+    var html = "";
+    var monthKey = dayKey(today).slice(0, 7);
+    var monthDays = 0, monthCigs = 0;
+
+    cells.forEach(function (ts) {
+      var k = dayKey(ts), cls = "cell", n = state.daily[k] || 0, style = "", label = "";
+      if (ts > today) {
+        cls += " future";
+      } else if (ts < quitDay) {
+        cls += " pre";
+      } else {
+        if (n > 0) {
+          cls += " slip";
+          var a = Math.min(.88, .34 + n * 0.1);
+          style = ' style="background:rgba(217,131,36,' + a.toFixed(2) + ')"';
+          label = n > 9 ? "9+" : String(n);
+        } else {
+          cls += " ok";
+        }
+        if (k.slice(0, 7) === monthKey) {
+          monthDays++;
+          monthCigs += n;
+        }
+      }
+      if (ts === today) cls += " today";
+      html += '<div class="' + cls + '"' + style + ' data-k="' + k + '" data-ts="' + ts + '">' + label + '</div>';
+    });
+
+    var cal = $("cal");
+    cal.style.gridTemplateColumns = "repeat(" + weeks + ",1fr)";
+    cal.innerHTML = html;
+    $("calSub").textContent = "本月 " + monthDays + " 天无烟 · " + monthCigs + " 支";
+
+    Array.prototype.forEach.call(cal.children, function (cell) {
+      cell.addEventListener("click", function () {
+        var ts = Number(cell.getAttribute("data-ts"));
+        if (ts > today) return;
+        var k = cell.getAttribute("data-k");
+        if (ts < quitDay) { toast("这天还没开始戒烟"); return; }
+        openDay(k);
+      });
+    });
+  }
+
+  /* ---------------- 记录某天抽了几支 ---------------- */
+  var editingKey = null;
+  var dayVal = 0;
+  var DAY_CHIPS = [0, 1, 2, 3, 5, 10];
+
+  function slipTotal() {
+    var sum = 0;
+    for (var k in state.daily) sum += state.daily[k] || 0;
+    return sum;
+  }
+
+  function keyToDate(key) {
+    var p = key.split("-");
+    return new Date(Number(p[0]), Number(p[1]) - 1, Number(p[2]));
+  }
+
+  function setDayCount(key, n) {
+    n = Math.max(0, Math.min(60, Math.round(n || 0)));
+    if (n > 0) state.daily[key] = n;
+    else delete state.daily[key];
+    state.slips = slipTotal();
+    saveState();
+    sigCal = "";
+    render();
+  }
+
+  function paintDay() {
+    $("dayValue").textContent = dayVal;
+    Array.prototype.forEach.call($("dayChips").children, function (b) {
+      b.className = Number(b.getAttribute("data-v")) === dayVal ? "on" : "";
+    });
+  }
+
+  function openDay(key) {
+    editingKey = key;
+    var d = keyToDate(key);
+    var wk = "日一二三四五六".charAt(d.getDay());
+    var isToday = key === dayKey(Date.now());
+    $("dayTitle").textContent = (d.getMonth() + 1) + "月" + d.getDate() + "日 周" + wk + (isToday ? "（今天）" : "");
+    dayVal = state.daily[key] || 0;
+    paintDay();
+    $("dayHint").textContent = "这天抽了几支？记 0 表示确认这天没抽。";
+    $("sheet").classList.remove("on");
+    $("daySheet").classList.add("on");
+    $("backdrop").classList.add("on");
+  }
+
+  function closeDay() {
+    $("daySheet").classList.remove("on");
+    $("backdrop").classList.remove("on");
+    editingKey = null;
+  }
+
+  (function initDayChips() {
+    var box = $("dayChips");
+    DAY_CHIPS.forEach(function (v) {
+      var b = document.createElement("button");
+      b.type = "button";
+      b.setAttribute("data-v", v);
+      b.textContent = v === 10 ? "10+" : v + " 支";
+      b.addEventListener("click", function () {
+        if (!editingKey) return;
+        setDayCount(editingKey, v);
+        toast(v === 0 ? "记好了：这天没抽 ✓" : "记好了：这天 " + v + " 支");
+        closeDay();
+      });
+      box.appendChild(b);
+    });
+  })();
+
+  $("dayMinus").addEventListener("click", function () { dayVal = Math.max(0, dayVal - 1); paintDay(); });
+  $("dayPlus").addEventListener("click", function () { dayVal = Math.min(60, dayVal + 1); paintDay(); });
+  $("daySave").addEventListener("click", function () {
+    if (!editingKey) return;
+    setDayCount(editingKey, dayVal);
+    var k = editingKey;
+    closeDay();
+    toast(dayVal === 0 ? "记好了：这天没抽 ✓" : "记好了：" + keyToDate(k).getMonth() + "月「" + dayVal + " 支」");
+  });
+  $("dayClear").addEventListener("click", function () {
+    if (!editingKey) return;
+    setDayCount(editingKey, 0);
+    closeDay();
+    toast("这天的记录已清除");
+  });
+
+  function buildHours() {
+    var counts = [], i;
+    for (i = 0; i < 24; i++) counts.push(0);
+    state.craveLog.forEach(function (ts) {
+      var h = new Date(ts).getHours();
+      if (h >= 0 && h < 24) counts[h]++;
+    });
+    var total = state.craveLog.length;
+    if (total < 3) { $("hoursSec").style.display = "none"; return; }
+    $("hoursSec").style.display = "";
+
+    var max = Math.max.apply(null, counts);
+    var html = "";
+    for (i = 0; i < 24; i++) {
+      var hgt = max > 0 ? Math.max(3, Math.round((counts[i] / max) * 100)) : 3;
+      html += '<i class="' + (counts[i] === max && max > 0 ? "hot" : "") + '" style="height:' + hgt + '%"></i>';
+    }
+    $("hours").innerHTML = html;
+
+    var peak = counts.indexOf(max);
+    $("hoursHint").textContent = "你记录过 " + total + " 次念头，最容易犯瘾的是 " +
+      pad(peak) + ":00–" + pad((peak + 1) % 24) + ":00。提前给这个时段安排点别的事，散步、刷牙、洗碗都行。";
+  }
+
+  var BADGES = [
+    { icon: "🌱", name: "第 1 天",    need: function (d) { return d >= 1; } },
+    { icon: "🌿", name: "坚持 3 天",  need: function (d) { return d >= 3; } },
+    { icon: "🍃", name: "满一周",     need: function (d) { return d >= 7; } },
+    { icon: "💧", name: "两周清爽",   need: function (d) { return d >= 14; } },
+    { icon: "🏅", name: "满月达成",   need: function (d) { return d >= 30; } },
+    { icon: "🫁", name: "肺在变强",   need: function (d) { return d >= 90; } },
+    { icon: "⛰️", name: "半年",       need: function (d) { return d >= 180; } },
+    { icon: "👑", name: "一整年",     need: function (d) { return d >= 365; } },
+    { icon: "💰", name: "省下 100",   need: function (d, m) { return m >= 100; } },
+    { icon: "💎", name: "省下 1000",  need: function (d, m) { return m >= 1000; } },
+    { icon: "🛡️", name: "扛过 10 次", need: function (d, m, c) { return c >= 10; } },
+    { icon: "🏆", name: "扛过 50 次", need: function (d, m, c) { return c >= 50; } }
+  ];
+
+  function buildBadges(days, money) {
+    var html = "", unlocked = 0;
+    BADGES.forEach(function (b) {
+      var ok = false;
+      try { ok = b.need(days, money, state.cravings); } catch (e) {}
+      if (ok) unlocked++;
+      html += '<div class="badge ' + (ok ? "" : "locked") + '">' +
+                '<div class="ic">' + b.icon + '</div>' +
+                '<div class="nm">' + b.name + '</div>' +
+              '</div>';
+    });
+    $("badges").innerHTML = html;
+    $("badgeSub").textContent = unlocked + " / " + BADGES.length;
+  }
+
+  /* ---------------- 快捷记录 ---------------- */
+  function logCrave() {
+    state.cravings = (state.cravings || 0) + 1;
+    state.craveLog.push(Date.now());
+    if (state.craveLog.length > 2000) state.craveLog = state.craveLog.slice(-2000);
+    saveState();
+    render();
+    buzz(15);
+    toast("记下了 ✓ 第 " + state.cravings + " 次扛过去");
+    var btn = $("craveBtn");
+    btn.textContent = "又赢一次 ✓";
+    setTimeout(function () { btn.textContent = "记一次"; }, 1200);
+  }
+
+  function logSlip() {
+    var key = dayKey(Date.now());
+    state.slipLog.push(Date.now());
+    setDayCount(key, (state.daily[key] || 0) + 1);
+    buzz([10, 40, 10]);
+    showEncourage();
+  }
+
+  /* ================= 激励语 ================= */
+  var LINES = [
+    "第 {today} 支了。不评判，愿意记下来就是在往回走。",
+    "烟雾散了就散了，你要接着做的事还在。",
+    "一支烟不会抹掉 {days} 天，账不是这么算的。",
+    "抽完这支，把烟盒留在别的地方，别留在口袋。",
+    "你不是失败了，你只是刚走到最难的那一段。",
+    "这一支已经发生。下一支，还在你手里。",
+    "身体不会因为你抽了一支，就白修了 {days} 天。",
+    "戒断不是直线，掉一格不等于回到起点。",
+    "今天多花的那点钱，明天就能赚回来。",
+    "今天第 {today} 支——把它当成提醒，不是判决。",
+    "烟只解决了三分钟，问题还在原地等你。",
+    "现在去漱个口，让那个味道先离开你。",
+    "手空下来的时候最难。给它找点事：水杯、笔、钥匙。",
+    "这一支之后，别急着再点一支来安慰自己。",
+    "不是你意志力差，是尼古丁在走老路。",
+    "能撑到 {days} 天，说明你本来就有这个能力。",
+    "刚刚那口，其实没有你想的那么好，对吧？",
+    "记录它，看清它，然后丢掉它。",
+    "最难熬的那阵只有几分钟，你已经知道它会过去。",
+    "抽了就抽了。羞愧比烟更伤你。",
+    "下一支之前，先喝一整杯水，再回来看这句话。",
+    "你今天还愿意打开这个页面，说明你没放弃。",
+    "别在同一个位置抽第二支，换个地方站着。",
+    "把打火机放远一点，远到需要站起来才够得着。",
+    "第 {today} 支，累计 {total} 支。数字只是数字，路还在。",
+    "戒掉的人平均试过六次。你还在路上，没出局。",
+    "你现在做的事，比你以为的更难。",
+    "抽完记得开窗，也记得对自己宽一点。",
+    "别把今天当废掉的一天，剩下的时间还是你的。",
+    "想抽是身体在讨旧债，不还也可以。",
+    "这次记下来，下次冲动来的时候你会认得它。",
+    "一支不算数，一天才叫数。今天还有时间。",
+    "深吸一口气，数到十，再决定要不要下一支。",
+    "你要的不是烟，是那三分钟的喘息。换个别的方式给自己。",
+    "想想当初为什么开始戒。那个理由还在吗？",
+    "抽这支的时候，你在躲什么？找到它，比戒烟更有用。",
+    "别急着骂自己，骂完还是想抽。",
+    "现在去刷牙，牙膏比烟更能让嘴巴清醒。",
+    "你能扛过上一次，这一次也一样能。",
+    "路很长，摔一跤不用把鞋扔了。",
+    "把肺想成刚擦干净的房间，别急着在里面点烟。",
+    "{days} 天的修复不会归零，接着攒就行。",
+    "这一刻很难，很正常。难的东西才叫戒。",
+    "再抽一支不会更舒服，只会多一次自责。",
+    "烟瘾在骗你，它说只有这一支。它每次都这么说。",
+    "想抽烟的时候，先出门走两百米。",
+    "今天的你，已经比第一天的你强很多了。",
+    "别等心情好了再戒，是戒了心情才会好。"
+  ];
+
+  var encToken = 0;
+
+  function buildCtx() {
+    var c = calc();
+    return {
+      days: c.days,
+      today: c.todaySmoked,
+      total: c.smoked,
+      wasted: c.smoked * c.pricePerCig,
+      price: c.pricePerCig
+    };
+  }
+
+  function fillLine(tpl, ctx) {
+    return tpl
+      .replace(/\{days\}/g, ctx.days)
+      .replace(/\{today\}/g, ctx.today)
+      .replace(/\{total\}/g, ctx.total)
+      .replace(/\{money\}/g, fmtMoney(ctx.wasted));
+  }
+
+  function pickLocal(ctx, allowRepeat) {
+    var used = {};
+    (state.encHistory || []).forEach(function (s) { used[s] = true; });
+    /* 天数还很少时，跳过带 {days} 的句子，避免「不会抹掉 0 天」这种别扭 */
+    var ok = function (l) { return ctx.days >= 1 || l.indexOf("{days}") === -1; };
+    var pool = LINES.filter(function (l) { return !used[l] && ok(l); });
+    if (!pool.length || allowRepeat === "force") pool = LINES.filter(ok);
+    var tpl = pool[Math.floor(Math.random() * pool.length)];
+    var text = fillLine(tpl, ctx);
+    pushHistory(tpl);
+    return text;
+  }
+
+  function pushHistory(text) {
+    if (!Array.isArray(state.encHistory)) state.encHistory = [];
+    if (state.encHistory.indexOf(text) === -1) state.encHistory.push(text);
+    if (state.encHistory.length > 12) state.encHistory = state.encHistory.slice(-12);
+    saveState();
+  }
+
+  function encEls() {
+    return {
+      modal: $("encModal"), quote: $("encQuote"), badge: $("encBadge"), meta: $("encMeta")
+    };
+  }
+
+  function setQuote(text, fromAI, ctx) {
+    var e = encEls();
+    if (!e.quote) return;
+    e.quote.className = "quote";
+    e.quote.textContent = text;
+    e.badge.innerHTML = fromAI
+      ? "AI 写的 <em>· 每次都不一样</em>"
+      : "今天第 " + ctx.today + " 支 <em>· 本地文案</em>";
+    e.meta.innerHTML = (ctx.days > 0 ? "已坚持 " + ctx.days + " 天" : "今天才开始") +
+      " · 累计 " + ctx.total + " 支 · 相当于 " + fmtMoney(ctx.wasted) + " 化成了烟";
+  }
+
+  function openModal() {
+    $("encModal").classList.add("on");
+  }
+  function closeModal() {
+    $("encModal").classList.remove("on");
+  }
+
+  function showEncourage() {
+    var ctx = buildCtx();
+    var e = encEls();
+    encToken++;
+    var my = encToken;
+
+    e.quote.className = "quote";
+    e.quote.textContent = pickLocal(ctx);
+    setQuote(e.quote.textContent, false, ctx);
+    openModal();
+
+    if (!state.aiEnabled || !state.aiUrl) return;
+
+    /* 先让本地句子顶着，AI 回来再替换，避免空窗 */
+    e.badge.innerHTML = "今天第 " + ctx.today + " 支 <em>· AI 正在想一句</em>";
+
+    fetchAI(ctx).then(function (txt) {
+      if (my !== encToken) return;
+      if (txt) {
+        setQuote(txt, true, ctx);
+        pushHistory(txt);
+      } else {
+        setQuote(pickLocal(ctx), false, ctx);
+      }
+    }).catch(function () {
+      if (my !== encToken) return;
+      setQuote(pickLocal(ctx), false, ctx);
+      toast("AI 没接通，先用本地文案");
+    });
+  }
+
+  function fetchAI(ctx) {
+    var url = state.aiUrl;
+    if (!url) return Promise.resolve(null);
+    var body = {
+      model: state.aiModel || "gpt-4o-mini",
+      temperature: 1.05,
+      max_tokens: 120,
+      messages: [
+        { role: "system", content: "你是一位克制、真诚、不说教的中文戒烟教练。句子要短、口语化、有画面，像朋友在耳边说，不要口号、不要emoji、不要引号。" },
+        { role: "user", content:
+          "用户刚抽了一支烟。今天第 " + ctx.today + " 支，累计 " + ctx.total + " 支，已坚持 " + ctx.days + " 天。" +
+          "写一句 30 字以内的中文鼓励。" +
+          "不要重复这些已经说过的话：" + (state.encHistory || []).slice(-6).join(" / ") +
+          "。只输出这一句话。" }
+      ]
+    };
+    var ctrl = null;
+    var opt = {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body)
+    };
+    if (state.aiKey) opt.headers.Authorization = "Bearer " + state.aiKey;
+    try {
+      ctrl = new AbortController();
+      opt.signal = ctrl.signal;
+      setTimeout(function () { try { ctrl.abort(); } catch (e) {} }, 8000);
+    } catch (e) {}
+
+    return fetch(url, opt).then(function (res) {
+      if (!res.ok) throw new Error("http " + res.status);
+      return res.json();
+    }).then(function (data) {
+      var txt = "";
+      try { txt = data.choices[0].message.content || ""; } catch (e) {}
+      if (!txt && data && data.choices && data.choices[0] && data.choices[0].text) txt = data.choices[0].text;
+      txt = String(txt)
+        .replace(/^[\s"'“”「」『』‘’\-—、]+/, "")
+        .replace(/[\s"'“”「」『』‘’]+$/, "")
+        .split("\n")[0].trim().slice(0, 60);
+      return txt || null;
+    });
+  }
+
+  $("encClose").addEventListener("click", closeModal);
+  $("encMask").addEventListener("click", closeModal);
+  $("encAgain").addEventListener("click", function () {
+    var ctx = buildCtx();
+    encToken++;
+    var my = encToken;
+    var e = encEls();
+    if (state.aiEnabled && state.aiUrl) {
+      e.quote.className = "quote loading";
+      e.quote.textContent = "再想一句…";
+      fetchAI(ctx).then(function (txt) {
+        if (my !== encToken) return;
+        setQuote(txt || pickLocal(ctx), !!txt, ctx);
+        if (txt) pushHistory(txt);
+      }).catch(function () {
+        if (my !== encToken) return;
+        setQuote(pickLocal(ctx), false, ctx);
+      });
+    } else {
+      setQuote(pickLocal(ctx, "force"), false, ctx);
+    }
+  });
+
+  $("craveBtn").addEventListener("click", logCrave);
+  $("qbCrave").addEventListener("click", logCrave);
+  $("qbSlip").addEventListener("click", logSlip);
+
+  function handleQuickLink() {
+    var search = location.search || "";
+    var hash = (location.hash || "").replace(/^#\/?/, "").toLowerCase();
+    var act = "";
+    if (/(^|[?&])log=crave\b/i.test(search) || hash === "crave") act = "crave";
+    else if (/(^|[?&])log=slip\b/i.test(search) || hash === "slip") act = "slip";
+    if (!act) return;
+    try {
+      var clean = search.replace(/([?&])log=[^&]*&?/, "$1").replace(/[?&]$/, "");
+      history.replaceState(null, "", location.pathname + clean);
+    } catch (e) {}
+    setTimeout(function () { if (act === "crave") logCrave(); else logSlip(); }, 260);
+  }
+
+  /* ---------------- 设置 ---------------- */
+  function fillForm() {
+    $("inQuit").value = fmtLocalInput(state.quitAt);
+    $("inCigs").value = state.cigsPerDay;
+    $("inPrice").value = state.pricePerPack;
+    $("inPack").value = state.cigsPerPack;
+    $("inBest").value = state.bestMs > 0 ? fmtSpan(state.bestMs) : "暂无";
+    $("inGoalName").value = state.goalName || "";
+    $("inGoalPrice").value = state.goalPrice || "";
+    $("inAiOn").checked = !!state.aiEnabled;
+    $("inAiUrl").value = state.aiUrl || "";
+    $("inAiModel").value = state.aiModel || "";
+    $("inAiKey").value = state.aiKey || "";
+  }
+
+  function openSheet() {
+    fillForm();
+    $("savedTip").textContent = "";
+    $("sheet").classList.add("on");
+    $("backdrop").classList.add("on");
+  }
+  function closeSheet() {
+    $("sheet").classList.remove("on");
+    $("backdrop").classList.remove("on");
+  }
+
+  $("openSettings").addEventListener("click", openSheet);
+  $("goalEdit").addEventListener("click", openSheet);
+  $("backdrop").addEventListener("click", function () {
+    closeSheet();
+    closeDay();
+  });
+
+  Array.prototype.forEach.call(document.querySelectorAll("[data-quick]"), function (btn) {
+    btn.addEventListener("click", function () {
+      var mode = btn.getAttribute("data-quick"), d = new Date();
+      if (mode === "today") { d.setHours(0, 0, 0, 0); }
+      else if (mode === "yesterday") { d.setDate(d.getDate() - 1); d.setHours(0, 0, 0, 0); }
+      $("inQuit").value = fmtLocalInput(d.getTime());
+    });
+  });
+
+  $("saveBtn").addEventListener("click", function () {
+    var ts = new Date($("inQuit").value).getTime();
+    if (!$("inQuit").value || isNaN(ts)) {
+      $("savedTip").style.color = "var(--danger)";
+      $("savedTip").textContent = "请先选择戒烟时间";
+      return;
+    }
+    state.quitAt = ts;
+    var c = parseInt($("inCigs").value, 10);
+    var p = parseFloat($("inPrice").value);
+    var k = parseInt($("inPack").value, 10);
+    var gp = parseFloat($("inGoalPrice").value);
+    state.cigsPerDay = (c > 0 && c <= 200) ? c : DEFAULT.cigsPerDay;
+    state.pricePerPack = (p > 0) ? p : DEFAULT.pricePerPack;
+    state.cigsPerPack = (k > 0 && k <= 50) ? k : DEFAULT.cigsPerPack;
+    state.goalName = ($("inGoalName").value || "").trim().slice(0, 20);
+    state.goalPrice = (gp > 0) ? gp : 0;
+    if (!state.goalPrice) state.goalName = "";
+    state.aiEnabled = !!$("inAiOn").checked;
+    state.aiUrl = ($("inAiUrl").value || "").trim();
+    state.aiModel = ($("inAiModel").value || "").trim();
+    state.aiKey = ($("inAiKey").value || "").trim();
+    saveState();
+    sigMs = sigCal = sigBadge = sigHours = "";
+    render();
+    $("savedTip").style.color = "var(--accent)";
+    $("savedTip").textContent = "已保存";
+    setTimeout(function () {
+      if ($("savedTip").textContent === "已保存") { $("savedTip").textContent = ""; closeSheet(); }
+    }, 700);
+  });
+
+  $("resetBtn").addEventListener("click", function () {
+    if (!window.confirm("确定要重新开始计时吗？当前这段记录会被记为一次最长纪录。")) return;
+    var elapsed = Math.max(0, Date.now() - state.quitAt);
+    state.bestMs = Math.max(state.bestMs || 0, elapsed);
+    state.quitAt = Date.now();
+    saveState();
+    sigMs = sigCal = sigBadge = sigHours = "";
+    render();
+    fillForm();
+    $("savedTip").style.color = "var(--accent)";
+    $("savedTip").textContent = "已重新开始，这一次一定行";
+    setTimeout(closeSheet, 900);
+  });
+
+  /* ---------------- 备份 / 恢复 ---------------- */
+  function download(blob, filename) {
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function () { URL.revokeObjectURL(url); }, 5000);
+  }
+
+  $("exportBtn").addEventListener("click", function () {
+    var data = JSON.stringify({ v: 2, exportedAt: new Date().toISOString(), state: state }, null, 2);
+    download(new Blob([data], { type: "application/json" }), "无烟日记备份-" + dayKey(Date.now()) + ".json");
+    toast("备份已导出，收好它");
+  });
+
+  $("importBtn").addEventListener("click", function () { $("importFile").click(); });
+
+  $("importFile").addEventListener("change", function (e) {
+    var file = e.target.files && e.target.files[0];
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function () {
+      try {
+        var obj = JSON.parse(String(reader.result));
+        var incoming = (obj && obj.state) ? obj.state : obj;
+        if (!incoming || typeof incoming !== "object") throw new Error("bad");
+        for (var k in DEFAULT) {
+          if (incoming[k] !== undefined && incoming[k] !== null) state[k] = incoming[k];
+        }
+        if (!Array.isArray(state.craveLog)) state.craveLog = [];
+        if (!Array.isArray(state.slipLog)) state.slipLog = [];
+        saveState();
+        sigMs = sigCal = sigBadge = sigHours = "";
+        render(); fillForm();
+        toast("备份已恢复 ✓");
+      } catch (err) {
+        toast("这个文件读不出来，换一个试试");
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = "";
+  });
+
+  /* ---------------- 成绩卡 ---------------- */
+  function drawCard() {
+    var W = 1080, H = 1350;
+    var cv = document.createElement("canvas");
+    cv.width = W; cv.height = H;
+    var g = cv.getContext("2d");
+
+    var grd = g.createLinearGradient(0, 0, W, H);
+    grd.addColorStop(0, "#0e8a6b");
+    grd.addColorStop(.55, "#0b7d61");
+    grd.addColorStop(1, "#075445");
+    g.fillStyle = grd; g.fillRect(0, 0, W, H);
+
+    g.globalAlpha = .07; g.fillStyle = "#ffffff";
+    g.beginPath(); g.arc(W * .92, H * .08, 340, 0, Math.PI * 2); g.fill();
+    g.beginPath(); g.arc(W * .04, H * .96, 280, 0, Math.PI * 2); g.fill();
+    g.globalAlpha = 1;
+
+    var F = '-apple-system,"PingFang SC","Microsoft YaHei",sans-serif';
+    var c = calc();
+
+    g.fillStyle = "rgba(255,255,255,.72)";
+    g.font = "500 34px " + F;
+    g.fillText("无烟日记 · 我的戒烟成绩", 90, 132);
+
+    g.fillStyle = "#ffffff";
+    g.font = "800 240px " + F;
+    var dayStr = String(c.days);
+    g.fillText(dayStr, 86, 400);
+    var tw = g.measureText(dayStr).width;
+    g.font = "600 64px " + F;
+    g.fillStyle = "rgba(255,255,255,.8)";
+    g.fillText("天", 86 + tw + 26, 400);
+
+    g.strokeStyle = "rgba(255,255,255,.22)";
+    g.lineWidth = 2;
+    g.beginPath(); g.moveTo(90, 470); g.lineTo(W - 90, 470); g.stroke();
+
+    var life = fmtLife(c.cigs * 11);
+    var packs = state.pricePerPack > 0 ? c.money / state.pricePerPack : 0;
+    var rows = [
+      ["省下了", "¥" + moneyText(c.money)],
+      ["少抽了", fmtNum(c.cigs) + " 支（约 " + Math.round(packs) + " 包）"],
+      ["多活了", life.v + (life.u || "")],
+      ["开始于", fmtDateTime(state.quitAt)]
+    ];
+    rows.forEach(function (r, i) {
+      var y = 580 + i * 130;
+      g.fillStyle = "rgba(255,255,255,.66)";
+      g.font = "500 34px " + F;
+      g.fillText(r[0], 90, y);
+      g.fillStyle = "#ffffff";
+      g.font = "700 52px " + F;
+      g.fillText(r[1], 90, y + 62);
+    });
+
+    g.fillStyle = "rgba(255,255,255,.5)";
+    g.font = "400 30px " + F;
+    g.fillText("每一分钟都在变好 · 无烟日记", 90, H - 110);
+
+    return cv;
+  }
+
+  $("shareBtn").addEventListener("click", function () {
+    var canvas = drawCard();
+    if (canvas.toBlob) {
+      canvas.toBlob(function (blob) {
+        if (!blob) { toast("生成失败，换个浏览器试试"); return; }
+        var file = null;
+        try { file = new File([blob], "无烟成绩.png", { type: "image/png" }); } catch (e) {}
+        if (file && navigator.canShare && navigator.canShare({ files: [file] })) {
+          navigator.share({ files: [file], title: "我的戒烟成绩" }).catch(function () {
+            download(blob, "无烟成绩.png"); toast("已生成成绩卡");
+          });
+        } else {
+          download(blob, "无烟成绩.png");
+          toast("已生成，去相册或下载里看看");
+        }
+      }, "image/png");
+    } else {
+      var a = document.createElement("a");
+      a.href = canvas.toDataURL("image/png");
+      a.download = "无烟成绩.png"; a.click();
+    }
+  });
+
+  /* ---------------- 启动 ---------------- */
+  render();
+  handleQuickLink();
+  setInterval(render, 1000);
+  document.addEventListener("visibilitychange", function () {
+    if (!document.hidden) { sigMs = sigCal = sigBadge = sigHours = ""; render(); }
+  });
+})();
+</script>
+</body>
+</html>

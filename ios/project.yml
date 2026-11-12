@@ -1,0 +1,38 @@
+name: QuitSmoke
+options:
+  bundleIdPrefix: com.corpsezhao
+  deploymentTarget:
+    iOS: "14.0"
+  createIntermediateGroups: true
+  groupSortPosition: top
+
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+    IPHONEOS_DEPLOYMENT_TARGET: "14.0"
+    ENABLE_BITCODE: NO
+    CODE_SIGNING_ALLOWED: NO
+    CODE_SIGNING_REQUIRED: NO
+    CODE_SIGN_IDENTITY: ""
+
+targets:
+  QuitSmoke:
+    type: application
+    platform: iOS
+    sources:
+      - path: QuitSmoke
+        excludes:
+          - "Info.plist"
+    settings:
+      base:
+        PRODUCT_NAME: QuitSmoke
+        PRODUCT_BUNDLE_IDENTIFIER: com.corpsezhao.quitsmoke
+        INFOPLIST_FILE: Info.plist
+        MARKETING_VERSION: "1.0"
+        CURRENT_PROJECT_VERSION: "1"
+        TARGETED_DEVICE_FAMILY: "1"
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        GENERATE_INFOPLIST_FILE: NO
+        SUPPORTS_MACCATALYST: NO
+        ONLY_ACTIVE_ARCH: NO
+        DEVELOPMENT_TEAM: ""

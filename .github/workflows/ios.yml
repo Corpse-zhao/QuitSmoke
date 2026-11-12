@@ -1,0 +1,77 @@
+name: Build IPA
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: macos-14
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 同步网页资源
+        run: |
+          cp index.html ios/QuitSmoke/Web/index.html
+          ls -l ios/QuitSmoke/Web/
+
+      - name: 安装 XcodeGen
+        run: brew install xcodegen
+
+      - name: 生成 Xcode 工程
+        working-directory: ios
+        run: |
+          xcodegen generate
+          ls -la
+
+      - name: 编译（未签名）
+        working-directory: ios
+        run: |
+          set -o pipefail
+          xcodebuild \
+            -project QuitSmoke.xcodeproj \
+            -target QuitSmoke \
+            -configuration Release \
+            -sdk iphoneos \
+            SYMROOT="$PWD/build" \
+            OBJROOT="$PWD/obj" \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            build 2>&1 | tail -60
+
+      - name: 打包 IPA
+        run: |
+          set -e
+          APP="ios/build/Release-iphoneos/QuitSmoke.app"
+          test -d "$APP" || (echo "找不到 app 产物"; find ios -name "*.app" -maxdepth 6; exit 1)
+          test -f "$APP/index.html" || (echo "index.html 没进包"; exit 1)
+          ls -la "$APP"
+          mkdir -p out/Payload
+          cp -R "$APP" out/Payload/
+          cd out
+          zip -qry QuitSmoke.ipa Payload
+          unzip -l QuitSmoke.ipa | head -25
+          du -h QuitSmoke.ipa
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: QuitSmoke-ipa
+          path: out/QuitSmoke.ipa
+
+      - name: 发布 Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v1.0.${{ github.run_number }}
+          name: 无烟日记 v1.0.${{ github.run_number }}
+          files: out/QuitSmoke.ipa
+          body: |
+            未签名 IPA（arm64，iOS 14+）。
+
+            安装方式：roothide 越狱设备可用 TrollStore / Filza 直接安装；
+            或用自签工具（AltStore、Sideloadly）重签后安装。
