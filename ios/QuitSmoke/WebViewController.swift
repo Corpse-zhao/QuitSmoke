@@ -5,6 +5,7 @@ final class WebViewController: UIViewController {
 
     private var webView: WKWebView!
     private let store = StoreBridge()
+    private let ai = AIBridge()
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -13,6 +14,7 @@ final class WebViewController: UIViewController {
 
         let controller = WKUserContentController()
         controller.add(store, name: "store")
+        controller.add(ai, name: "ai")
         controller.addUserScript(store.preloadScript())
 
         let config = WKWebViewConfiguration()
@@ -41,6 +43,7 @@ final class WebViewController: UIViewController {
             web.bottomAnchor.constraint(equalTo: view.bottomAnchor)
         ])
         webView = web
+        ai.webView = web
 
         if let url = URL(string: "app://local/index.html") {
             web.load(URLRequest(url: url))

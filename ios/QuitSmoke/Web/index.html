@@ -288,6 +288,16 @@
     line-height:1.5;margin:0 0 12px;cursor:pointer}
   .switch-row input{width:18px;height:18px;margin:1px 0 0;accent-color:var(--accent);flex:0 0 auto}
   .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .model-row{display:flex;gap:8px}
+  .model-row select{flex:1;min-width:0;font-family:inherit;font-size:14px;color:var(--ink);
+    padding:12px 13px;border-radius:13px;border:1px solid var(--line);background:var(--field);
+    appearance:none;-webkit-appearance:none}
+  .model-row .mini{flex:0 0 auto;padding:0 14px;border-radius:13px;border:1px solid var(--line);
+    background:var(--card);color:var(--accent);font-family:inherit;font-size:12.5px;font-weight:600;cursor:pointer;white-space:nowrap}
+  .model-row .mini:active{transform:scale(.97)}
+  .mtype{font-size:10px;font-weight:700;color:var(--accent);background:var(--soft);
+    padding:2px 7px;border-radius:999px;margin-left:3px;letter-spacing:.02em}
+  .field #inAiModel{margin-top:8px}
   .quick{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
   .quick button{font-family:inherit;font-size:12px;padding:7px 12px;border-radius:10px;cursor:pointer;
     border:1px solid var(--line);background:var(--card);color:var(--muted)}
@@ -528,21 +538,23 @@
     <input type="checkbox" id="inAiOn" />
     <span>用 AI 生成激励语（关闭时用本地文案库，48 句洗牌，不重复）</span>
   </label>
-  <div class="row2">
-    <div class="field">
-      <label for="inAiUrl">接口地址</label>
-      <input type="text" id="inAiUrl" placeholder="https://api.openai.com/v1/chat/completions" />
+  <div class="field">
+    <label for="inAiUrl">接口地址</label>
+    <input type="text" id="inAiUrl" placeholder="https://api.openai.com/v1/chat/completions" />
+  </div>
+  <div class="field">
+    <label for="inAiModel">模型 <span class="mtype" id="aiModelType">未选择</span></label>
+    <div class="model-row">
+      <select id="aiModelList"></select>
+      <button type="button" class="mini" id="aiFetchModels">拉取模型</button>
     </div>
-    <div class="field">
-      <label for="inAiModel">模型</label>
-      <input type="text" id="inAiModel" placeholder="gpt-4o-mini" />
-    </div>
+    <input type="text" id="inAiModel" placeholder="也可以手动填模型 id" />
   </div>
   <div class="field">
     <label for="inAiKey">API Key（只存在本机，不上传）</label>
     <input type="password" id="inAiKey" placeholder="sk-..." autocomplete="off" />
   </div>
-  <p class="hint" style="margin:-4px 0 4px">任何 OpenAI 兼容接口都行。接口不支持跨域时，会自动退回本地文案。</p>
+  <p class="hint" style="margin:-4px 0 4px">任何 OpenAI 兼容接口都行。App 内走原生请求，不受跨域限制；网页版若被接口挡掉跨域，会自动退回本地文案。</p>
 
   <h4>数据</h4>
   <button class="ghost" id="shareBtn">生成成绩卡图片</button>
@@ -618,9 +630,10 @@
     goalName: "",
     goalPrice: 0,
     aiEnabled: false,
-    aiUrl: "",
-    aiModel: "",
+    aiUrl: "https://api.xingchiapi.com/v1/chat/completions",
+    aiModel: "gpt-6.1-sol",
     aiKey: "",
+    aiModels: [],
     encHistory: []
   };
 
@@ -1296,6 +1309,137 @@
     });
   }
 
+  var NATIVE_AI = (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.ai) || null;
+  var aiSeq = 0, aiPending = {};
+
+  /* 原生通道回来的结果 */
+  window.__aiReply = function (id, text, ok) {
+    var resolve = aiPending[id];
+    if (!resolve) return;
+    delete aiPending[id];
+    resolve(ok && text ? text : null);
+  };
+
+  /* ---------- 模型列表 ---------- */
+  var aiModelsPending = {};
+
+  window.__aiModels = function (id, text) {
+    var cb = aiModelsPending[id];
+    if (!cb) return;
+    delete aiModelsPending[id];
+    cb(text);
+  };
+
+  function escHtml(s) {
+    return String(s == null ? "" : s)
+      .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
+  function modelsUrl() {
+    var u = (state.aiUrl || "").trim();
+    if (!u) return "";
+    if (/\/chat\/completions\/?$/.test(u)) return u.replace(/\/chat\/completions\/?$/, "/models");
+    if (/\/v1\/?$/.test(u)) return u.replace(/\/$/, "") + "/models";
+    return u.replace(/\/$/, "") + "/models";
+  }
+
+  /* 按模型 id/名字猜类型，只做展示标注 */
+  function modelType(id, name) {
+    var s = (String(id || "") + " " + String(name || "")).toLowerCase();
+    if (/embed|rerank-bge|embedding/.test(s)) return "向量";
+    if (/(dall-e|dalle|image|flux|stable-diffusion|sd-?xl|midjourney|imagen|draw)/.test(s)) return "图像";
+    if (/(whisper|tts|audio|speech|voice|music|suno)/.test(s)) return "语音";
+    if (/(vision|-vl-|multimodal|omni|realtime)/.test(s)) return "多模态";
+    if (/(moderation|rerank|guard)/.test(s)) return "审核";
+    return "文本";
+  }
+
+  function renderModelOptions() {
+    var sel = $("aiModelList");
+    if (!sel) return;
+    var list = state.aiModels || [];
+    var html = '<option value="">' + (list.length
+      ? "选择模型（共 " + list.length + " 个）"
+      : "点「拉取模型」获取列表") + '</option>';
+    list.forEach(function (m) {
+      var tag = m.type || modelType(m.id, m.label);
+      var text = (m.label || m.id) + " · " + tag + (m.owner ? " · " + m.owner : "");
+      html += '<option value="' + escHtml(m.id) + '">' + escHtml(text) + '</option>';
+    });
+    sel.innerHTML = html;
+    var cur = $("inAiModel").value || state.aiModel || "";
+    if (cur) sel.value = cur;
+    updateModelType(cur);
+  }
+
+  function updateModelType(id) {
+    var badge = $("aiModelType");
+    if (!badge) return;
+    if (!id) { badge.textContent = "未选择"; return; }
+    var hit = null;
+    (state.aiModels || []).some(function (m) { if (m.id === id) { hit = m; return true; } return false; });
+    badge.textContent = hit ? (hit.type || modelType(hit.id, hit.label)) : modelType(id, id);
+  }
+
+  function fetchModelsList(silent) {
+    var url = modelsUrl();
+    if (!url) { if (!silent) toast("先填接口地址"); return Promise.resolve([]); }
+
+    var run;
+    if (NATIVE_AI) {
+      run = new Promise(function (resolve) {
+        var id = "m" + (++aiSeq);
+        aiModelsPending[id] = resolve;
+        try {
+          NATIVE_AI.postMessage({ kind: "models", id: id, url: url, key: state.aiKey || "" });
+        } catch (e) {
+          delete aiModelsPending[id];
+          resolve("");
+          return;
+        }
+        setTimeout(function () {
+          if (aiModelsPending[id]) { delete aiModelsPending[id]; resolve(""); }
+        }, 16000);
+      });
+    } else {
+      run = fetch(url, { headers: state.aiKey ? { Authorization: "Bearer " + state.aiKey } : {} })
+        .then(function (r) { return r.text(); })
+        .catch(function () { return ""; });
+    }
+
+    return run.then(function (text) {
+      var list = [];
+      try {
+        var json = JSON.parse(text);
+        var arr = json.data || json.models || [];
+        list = arr.map(function (m) {
+          var mid = m.id || m.name || "";
+          var label = m.display_name || m.displayName || mid;
+          return { id: mid, label: label, owner: m.owned_by || m.owner || "", type: modelType(mid, label) };
+        }).filter(function (m) { return !!m.id; });
+      } catch (e) {}
+
+      if (list.length) {
+        state.aiModels = list;
+        saveState();
+        renderModelOptions();
+        if (!silent) toast("拿到 " + list.length + " 个模型");
+      } else if (!silent) {
+        toast("没取到模型列表，检查地址和 Key");
+      }
+      return list;
+    });
+  }
+
+  function cleanAIText(raw) {
+    var txt = String(raw || "")
+      .replace(/^[\s"'“”「」『』‘’\-—、]+/, "")
+      .replace(/[\s"'“”「」『』‘’]+$/, "")
+      .split("\n")[0].trim();
+    return txt ? txt.slice(0, 60) : null;
+  }
+
   function fetchAI(ctx) {
     var url = state.aiUrl;
     if (!url) return Promise.resolve(null);
@@ -1312,6 +1456,33 @@
           "。只输出这一句话。" }
       ]
     };
+
+    /* App 内：走原生 URLSession，绕开浏览器跨域限制 */
+    if (NATIVE_AI) {
+      return new Promise(function (resolve) {
+        var id = "ai" + (++aiSeq);
+        aiPending[id] = resolve;
+        try {
+          NATIVE_AI.postMessage({
+            id: id,
+            url: url,
+            key: state.aiKey || "",
+            model: state.aiModel || "",
+            temperature: 1.05,
+            maxTokens: 120,
+            messages: body.messages
+          });
+        } catch (e) {
+          delete aiPending[id];
+          resolve(null);
+          return;
+        }
+        setTimeout(function () {
+          if (aiPending[id]) { delete aiPending[id]; resolve(null); }
+        }, 22000);
+      }).then(function (txt) { return cleanAIText(txt); });
+    }
+
     var ctrl = null;
     var opt = {
       method: "POST",
@@ -1332,11 +1503,7 @@
       var txt = "";
       try { txt = data.choices[0].message.content || ""; } catch (e) {}
       if (!txt && data && data.choices && data.choices[0] && data.choices[0].text) txt = data.choices[0].text;
-      txt = String(txt)
-        .replace(/^[\s"'“”「」『』‘’\-—、]+/, "")
-        .replace(/[\s"'“”「」『』‘’]+$/, "")
-        .split("\n")[0].trim().slice(0, 60);
-      return txt || null;
+      return cleanAIText(txt);
     });
   }
 
@@ -1391,9 +1558,10 @@
     $("inGoalName").value = state.goalName || "";
     $("inGoalPrice").value = state.goalPrice || "";
     $("inAiOn").checked = !!state.aiEnabled;
-    $("inAiUrl").value = state.aiUrl || "";
-    $("inAiModel").value = state.aiModel || "";
+    $("inAiUrl").value = state.aiUrl || DEFAULT.aiUrl;
+    $("inAiModel").value = state.aiModel || DEFAULT.aiModel;
     $("inAiKey").value = state.aiKey || "";
+    renderModelOptions();
   }
 
   function openSheet() {
@@ -1401,6 +1569,8 @@
     $("savedTip").textContent = "";
     $("sheet").classList.add("on");
     $("backdrop").classList.add("on");
+    /* 有 Key 但还没拉过列表时，顺手拉一次 */
+    if (state.aiKey && (!state.aiModels || !state.aiModels.length)) fetchModelsList(true);
   }
   function closeSheet() {
     $("sheet").classList.remove("on");
@@ -1422,6 +1592,17 @@
       $("inQuit").value = fmtLocalInput(d.getTime());
     });
   });
+
+  $("aiModelList").addEventListener("change", function () {
+    var v = $("aiModelList").value;
+    if (!v) return;
+    $("inAiModel").value = v;
+    updateModelType(v);
+  });
+  $("inAiModel").addEventListener("input", function () {
+    updateModelType($("inAiModel").value.trim());
+  });
+  $("aiFetchModels").addEventListener("click", function () { fetchModelsList(false); });
 
   $("saveBtn").addEventListener("click", function () {
     var ts = new Date($("inQuit").value).getTime();
