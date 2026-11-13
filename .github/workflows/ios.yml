@@ -49,14 +49,23 @@ jobs:
         run: |
           set -e
           APP="ios/build/Release-iphoneos/QuitSmoke.app"
-          test -d "$APP" || (echo "找不到 app 产物"; find ios -name "*.app" -maxdepth 6; exit 1)
+          test -d "$APP" || (echo "找不到 app 产物"; find ios -name "*.app" -o -name "*.appex" -maxdepth 6; exit 1)
           test -f "$APP/index.html" || (echo "index.html 没进包"; exit 1)
-          ls -la "$APP"
+          test -d "$APP/PlugIns/QuitSmokeWidget.appex" || (echo "小组件没进包"; exit 1)
+          ls -la "$APP" "$APP/PlugIns"
           mkdir -p out/Payload
           cp -R "$APP" out/Payload/
+          # ad-hoc 签名，把 App Group 权限嵌进签名（越狱 / TrollStore 安装时生效）
+          codesign --force --sign - \
+            --entitlements ios/QuitSmokeWidget.entitlements \
+            "out/Payload/QuitSmoke.app/PlugIns/QuitSmokeWidget.appex"
+          codesign --force --sign - \
+            --entitlements ios/QuitSmoke.entitlements \
+            "out/Payload/QuitSmoke.app"
+          codesign -dv "out/Payload/QuitSmoke.app" 2>&1 | head -8 || true
           cd out
           zip -qry QuitSmoke.ipa Payload
-          unzip -l QuitSmoke.ipa | head -25
+          unzip -l QuitSmoke.ipa | head -30
           du -h QuitSmoke.ipa
 
       - uses: actions/upload-artifact@v4

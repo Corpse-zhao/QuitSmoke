@@ -15,11 +15,23 @@ final class StoreBridge: NSObject, WKScriptMessageHandler {
               let key = body["key"] as? String,
               let value = body["value"] as? String else { return }
 
+        if key == "widget" {
+            writeWidgetState(value)
+            return
+        }
+
         lock.lock()
         var all = loadAll()
         all[key] = value
         saveAll(all)
         lock.unlock()
+    }
+
+    /// 小组件通过 App Group 读取这份快照
+    private func writeWidgetState(_ json: String) {
+        guard let data = json.data(using: .utf8),
+              let defaults = UserDefaults(suiteName: "group.com.corpsezhao.quitsmoke") else { return }
+        defaults.set(data, forKey: "widgetState")
     }
 
     func preloadScript() -> WKUserScript {

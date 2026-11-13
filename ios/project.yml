@@ -23,6 +23,9 @@ targets:
       - path: QuitSmoke
         excludes:
           - "Info.plist"
+    dependencies:
+      - target: QuitSmokeWidget
+        embed: true
     settings:
       base:
         PRODUCT_NAME: QuitSmoke
@@ -34,5 +37,23 @@ targets:
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         GENERATE_INFOPLIST_FILE: NO
         SUPPORTS_MACCATALYST: NO
+        ONLY_ACTIVE_ARCH: NO
+        DEVELOPMENT_TEAM: ""
+
+  QuitSmokeWidget:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: QuitSmokeWidget
+    settings:
+      base:
+        PRODUCT_NAME: QuitSmokeWidget
+        PRODUCT_BUNDLE_IDENTIFIER: com.corpsezhao.quitsmoke.QuitSmokeWidget
+        INFOPLIST_FILE: QuitSmokeWidget/Info.plist
+        MARKETING_VERSION: "1.0"
+        CURRENT_PROJECT_VERSION: "1"
+        TARGETED_DEVICE_FAMILY: "1"
+        GENERATE_INFOPLIST_FILE: NO
+        SKIP_INSTALL: YES
         ONLY_ACTIVE_ARCH: NO
         DEVELOPMENT_TEAM: ""

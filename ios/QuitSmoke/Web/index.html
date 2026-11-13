@@ -682,6 +682,20 @@
 
   function saveState() {
     storeSet(KEY, JSON.stringify(state));
+    pushWidgetSnapshot();
+  }
+
+  /* 给 iOS 桌面小组件的快照（走原生桥，App Group 共享） */
+  function pushWidgetSnapshot() {
+    if (!NATIVE) return;
+    var snap = {
+      quitAt: state.quitAt,
+      cigsPerDay: state.cigsPerDay,
+      pricePerPack: state.pricePerPack,
+      cigsPerPack: state.cigsPerPack,
+      todayCigs: state.daily[dayKey(Date.now())] || 0
+    };
+    try { NATIVE.postMessage({ key: "widget", value: JSON.stringify(snap) }); } catch (e) {}
   }
 
   /* ---------------- helpers ---------------- */
@@ -1586,6 +1600,7 @@
 
   /* ---------------- 启动 ---------------- */
   render();
+  saveState();          /* 顺便把小组件快照推给原生层 */
   handleQuickLink();
   setInterval(render, 1000);
   document.addEventListener("visibilitychange", function () {
